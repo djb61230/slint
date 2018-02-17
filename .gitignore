@@ -91,6 +91,8 @@ nb-configuration*.xml
 .AppleDouble
 .LSOverride
 .localized
+*.swp
+*.swo
 
 # Icon must end with two \r
 Icon
