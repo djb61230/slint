@@ -51,4 +51,4 @@ Simple 'mvn clean install' will create an executable jar in the target directory
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the GPL License - see the [COPYING.txt](COPYING.txt) file for details.
