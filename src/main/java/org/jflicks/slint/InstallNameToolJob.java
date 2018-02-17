@@ -31,7 +31,7 @@ import org.pmw.tinylog.Logger;
  */
 public class InstallNameToolJob extends BaseSlintJob {
 
-    private String oldSetting;
+    private String changeText;
     private String newSetting;
     private String path;
 
@@ -41,20 +41,12 @@ public class InstallNameToolJob extends BaseSlintJob {
     public InstallNameToolJob() {
     }
 
-    public String getOldSetting() {
-        return (oldSetting);
+    public String getChangeText() {
+        return (changeText);
     }
 
-    public void setOldSetting(String s) {
-        oldSetting = s;
-    }
-
-    public String getNewSetting() {
-        return (newSetting);
-    }
-
-    public void setNewSetting(String s) {
-        newSetting = s;
+    public void setChangeText(String s) {
+        changeText = s;
     }
 
     public String getPath() {
@@ -78,9 +70,9 @@ public class InstallNameToolJob extends BaseSlintJob {
      */
     public void run() {
 
-        SystemJob job = SystemJob.getInstance("install_name_tool -change "
-            + getOldSetting() + " " + getNewSetting() + " " + getPath());
+        SystemJob job = SystemJob.getInstance("install_name_tool " + getChangeText() + " " + getPath());
         fireJobEvent(JobEvent.UPDATE, "command: <" + job.getCommand() + ">");
+        Logger.debug("command: <" + job.getCommand() + ">");
         setSystemJob(job);
         job.addJobListener(this);
         JobContainer jc = JobManager.getJobContainer(job);

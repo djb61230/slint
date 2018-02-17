@@ -16,7 +16,11 @@
 */
 package org.jflicks.slint;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import org.pmw.tinylog.Logger;
 
@@ -31,13 +35,15 @@ public class Entry implements Serializable, Comparable<Entry> {
     private String originalLocation;
     private String name;
     private String compatibility;
+    private String realPath;
     private boolean leaf;
+    private static HashMap<String, String> fileNameMap = new HashMap<String, String>();
 
     private Entry(String originalLocation, String name, String compatibility) {
 
-        setOriginalLocation(originalLocation);
-        setName(name);
         setCompatibility(compatibility);
+        setName(name);
+        setOriginalLocation(originalLocation);
     }
 
     public static Entry parse(String s) {
@@ -68,7 +74,7 @@ public class Entry implements Serializable, Comparable<Entry> {
 
             } else {
 
-                Logger.debug("Bad Entry String <" + s + ">");
+                Logger.debug("Bad Entry String <" + s + ">, may be just a file path.");
                 index = s.lastIndexOf("/");
                 if (index != -1) {
 
@@ -102,7 +108,15 @@ public class Entry implements Serializable, Comparable<Entry> {
 
             if ((s.startsWith("/System")) || (s.startsWith("/usr/lib"))) {
                 setLeaf(true);
+            } else if (s.startsWith("@rpath")) {
+                computeRealPath();
+            } else {
+                setRealPath(toString());
             }
+
+        } else {
+
+            Logger.debug("setOriginalLocation has been given a null");
         }
     }
 
@@ -133,6 +147,82 @@ public class Entry implements Serializable, Comparable<Entry> {
 
     private void setLeaf(boolean b) {
         leaf = b;
+    }
+
+    /**
+     * We can have an Entry with a location that starts with &amp;rpath etc.
+     *
+     * @return A String instance.
+     */
+    public String getRealPath() {
+        return (realPath);
+    }
+
+    private void setRealPath(String s) {
+        realPath = s;
+    }
+
+    private void computeRealPath() {
+
+        String last = fileNameMap.get(name);
+        if (last == null) {
+
+            ArrayList<String> list = new ArrayList<String>();
+            File dir = new File("/usr/local");
+            searchDirectory(dir, name, list);
+            if (list.size() == 0) {
+
+                dir = new File("/opt");
+                searchDirectory(dir, name, list);
+            }
+
+            Logger.debug("We found " + list.size() + " instance(s) of " + name);
+            if (list.size() > 0) {
+
+                setRealPath(list.get(0));
+
+            } else {
+
+                setRealPath(toString());
+            }
+            fileNameMap.put(name, getRealPath());
+
+        } else {
+
+            setRealPath(last);
+        }
+    }
+
+    private void searchDirectory(File directory, String fileNameToSearch, List<String> list) {
+
+        if (directory.isDirectory()) {
+            search(directory, fileNameToSearch, list);
+        }
+    }
+
+    private void search(File file, String fileNameToSearch, List<String> list) {
+
+        if (file.isDirectory()) {
+
+            //do you have permission to read this directory?
+            if (file.canRead()) {
+
+                for (File temp : file.listFiles()) {
+                    if (temp.isDirectory()) {
+                        search(temp, fileNameToSearch, list);
+                    } else {
+                        if (fileNameToSearch.equals(temp.getName().toLowerCase())) {
+                            list.add(temp.getAbsoluteFile().toString());
+                            break;
+                        }
+                    }
+                }
+
+            } else {
+
+                Logger.debug(file.getAbsoluteFile() + "Permission Denied");
+            }
+        }
     }
 
     /**

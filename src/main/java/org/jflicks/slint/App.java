@@ -21,9 +21,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.jflicks.job.JobContainer;
 import org.jflicks.job.JobEvent;
@@ -32,6 +35,10 @@ import org.jflicks.job.JobManager;
 import org.jflicks.util.Util;
 
 import org.apache.commons.io.FileUtils;
+import org.pmw.tinylog.Configurator;
+import org.pmw.tinylog.Level;
+import org.pmw.tinylog.Logger;
+import org.pmw.tinylog.writers.ConsoleWriter;
 
 /**
  * Command line program to do our work.
@@ -55,16 +62,12 @@ public final class App {
         }
     }
 
-    private static void changeToLibrary(Entry entry, String keyName, String libraryName, String path) {
+    private static void changeToLibrary(String changeText, String path) {
 
-        if ((entry != null) && (keyName != null) && (libraryName != null) && (path != null)) {
+        if ((changeText != null) && (path != null)) {
 
-            if (libraryName.length() > 0) {
-                libraryName = libraryName + "/";
-            }
             InstallNameToolJob job = new InstallNameToolJob();
-            job.setOldSetting(entry.toString());
-            job.setNewSetting(keyName + "/" + libraryName + entry.getName());
+            job.setChangeText(changeText);
             job.setPath(path);
 
             JobContainer jc = JobManager.getJobContainer(job);
@@ -80,7 +83,8 @@ public final class App {
         if (entry != null) {
 
             OtoolJob job = new OtoolJob();
-            job.setPath(entry.toString());
+            job.setPath(entry.getRealPath());
+            Logger.debug(entry.getRealPath());
 
             JobContainer jc = JobManager.getJobContainer(job);
             jc.start();
@@ -91,6 +95,10 @@ public final class App {
 
                 result = info.getEntries();
             }
+
+        } else {
+
+            Logger.debug("entry is null (bad)");
         }
 
         return (result);
@@ -98,10 +106,11 @@ public final class App {
 
     private static void process(List<Entry> list, Entry entry) {
 
+        System.out.print(".");
         if (entry != null) {
 
             OtoolJob job = new OtoolJob();
-            job.setPath(entry.toString());
+            job.setPath(entry.getRealPath());
 
             JobContainer jc = JobManager.getJobContainer(job);
             jc.start();
@@ -114,16 +123,29 @@ public final class App {
                 if ((array != null) && (array.length > 0)) {
 
                     for (Entry e : array) {
-                        System.out.print(".");
                         if ((!e.isLeaf()) && (!list.contains(e))) {
 
                             list.add(e);
                             process(list, e);
                         }
                     }
+
+                } else {
+
+                    Logger.debug("No entries likely (bad)");
                 }
+
+            } else {
+
+                Logger.debug("Null OtoolInfo (bad)");
             }
+
+        } else {
+
+            Logger.debug("entry is null (bad)");
         }
+
+        System.out.print(".");
     }
 
     private static void usage() {
@@ -144,6 +166,7 @@ public final class App {
         String program = null;
         String output = null;
         String library = "lib";
+        String debug = "OFF";
 
         if (Util.isMac()) {
 
@@ -157,6 +180,10 @@ public final class App {
 
                     output = args[i + 1];
 
+                } else if (args[i].equalsIgnoreCase("-d")) {
+
+                    debug = args[i + 1];
+
                 } else if (args[i].equalsIgnoreCase("-l")) {
 
                     library = args[i + 1];
@@ -166,6 +193,11 @@ public final class App {
                     usage();
                 }
             }
+
+            Configurator.defaultConfig()
+               .writer(new ConsoleWriter())
+               .level(Level.valueOf(debug))
+               .activate();
 
             if ((program != null) && (output != null)) {
 
@@ -214,6 +246,15 @@ public final class App {
 
                     if (shouldContinue) {
 
+                        long start = System.currentTimeMillis();
+                        StringBuilder sb = new StringBuilder();
+
+                        Set<PosixFilePermission> perms644 = new HashSet<PosixFilePermission>();
+                        perms644.add(PosixFilePermission.OWNER_READ);
+                        perms644.add(PosixFilePermission.OWNER_WRITE);
+                        perms644.add(PosixFilePermission.GROUP_READ);
+                        perms644.add(PosixFilePermission.OTHERS_READ);
+
                         FileUtils.cleanDirectory(libDir);
                         Entry root = Entry.parse(program);
                         System.out.println("Finding dependencies for " + root);
@@ -229,11 +270,11 @@ public final class App {
                                 StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
                             for (Entry e : list) {
 
-                                System.out.println(e);
-                                File from = new File(e.toString());
+                                File from = new File(e.getRealPath());
                                 File ldest = new File(libDir, from.getName());
                                 Files.copy(Paths.get(from.getPath()), Paths.get(ldest.getPath()),
                                     StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+                                Files.setPosixFilePermissions(Paths.get(ldest.getPath()), perms644);
                             }
 
                             // First do the program.  Get it's entries.
@@ -248,16 +289,25 @@ public final class App {
 
                                     if (!e.isLeaf()) {
 
-                                        // Ok not a system library.  It should be in our
-                                        // library directory.  We need to point it there.
-                                        System.out.print(".");
-                                        changeToLibrary(e, "@executable_path", library, newPath);
+                                        sb.append(" -change ");
+                                        sb.append(e.toString());
+                                        sb.append(" @executable_path/");
+                                        sb.append(library);
+                                        sb.append("/");
+                                        sb.append(e.getName());
                                     }
                                 }
-                                System.out.println(".");
+                                changeToLibrary(sb.toString().trim(), newPath);
 
                                 // Now to process the files in the library directory.
+                                int count = 0;
                                 Iterator<File> iterator = FileUtils.iterateFiles(libDir, null, false);
+                                while (iterator.hasNext()) {
+                                    count++;
+                                    iterator.next();
+                                }
+                                iterator = FileUtils.iterateFiles(libDir, null, false);
+                                int index = 1;
                                 while (iterator.hasNext()) {
 
                                     File lfile = iterator.next();
@@ -266,20 +316,25 @@ public final class App {
                                     Entry[] larray = process(lentry);
                                     if ((larray != null) && (larray.length > 0)) {
 
-                                        System.out.println("Updating " + newPath + " to point to co-located library.");
+                                        System.out.println("Updating " + newPath + " pointing to co-located lib("
+                                            + index++ + " of " + count + ").");
+                                        sb.setLength(0);
                                         for (Entry e : larray) {
 
                                             if (!e.isLeaf()) {
 
-                                                // Ok not a system library.  It should be in our
-                                                // library directory.  We need to point it there.
-                                                System.out.print(".");
-                                                changeToLibrary(e, "@loader_path", "", newPath);
+                                                sb.append(" -change ");
+                                                sb.append(e.toString());
+                                                sb.append(" @loader_path/");
+                                                sb.append(e.getName());
                                             }
                                         }
-                                        System.out.println(".");
+                                        changeToLibrary(sb.toString().trim(), newPath);
                                     }
                                 }
+
+                                long now = System.currentTimeMillis();
+                                System.out.println("Took " + ((now - start) / 1000) + " seconds.");
 
                             } else {
 

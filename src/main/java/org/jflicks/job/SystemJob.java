@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.jflicks.util.Util;
-import org.pmw.tinylog.Logger;
 
 /**
  * This class will run any system executable.  It uses Input and Output jobs
@@ -218,7 +217,6 @@ public final class SystemJob extends AbstractJob implements JobListener {
                 // We want to set the PATH variable in case a System
                 // property is set.
                 String jflicksPath = System.getProperty("jflicks.path");
-                Logger.debug("jflicks.path: <" + jflicksPath + ">");
                 if (jflicksPath != null) {
 
                     jflicksPath = jflicksPath.replaceAll("\\\\", "/");
