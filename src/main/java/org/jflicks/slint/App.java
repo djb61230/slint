@@ -18,12 +18,25 @@ import org.jflicks.util.Util;
 import org.apache.commons.io.FileUtils;
 
 /**
- * Hello world!
- *
+ * Command line program to do our work.
  */
-public class App {
+public final class App {
 
-    public App() {
+    private static void block(JobContainer jc) {
+
+        if (jc != null) {
+
+            // Block until we are done.
+            while (jc.isAlive()) {
+
+                try {
+
+                    Thread.sleep(50);
+
+                } catch (Exception ex) {
+                }
+            }
+        }
     }
 
     private static void changeToLibrary(Entry entry, String keyName, String libraryName, String path) {
@@ -40,17 +53,7 @@ public class App {
 
             JobContainer jc = JobManager.getJobContainer(job);
             jc.start();
-
-            // Block until we are done.
-            while (jc.isAlive()) {
-
-                try {
-
-                    Thread.sleep(50);
-
-                } catch (Exception ex) {
-                }
-            }
+            block(jc);
         }
     }
 
@@ -65,17 +68,7 @@ public class App {
 
             JobContainer jc = JobManager.getJobContainer(job);
             jc.start();
-
-            // Block until we are done.
-            while (jc.isAlive()) {
-
-                try {
-
-                    Thread.sleep(50);
-
-                } catch (Exception ex) {
-                }
-            }
+            block(jc);
 
             OtoolInfo info = job.getOtoolInfo();
             if (info != null) {
@@ -96,17 +89,7 @@ public class App {
 
             JobContainer jc = JobManager.getJobContainer(job);
             jc.start();
-
-            // Block until we are done.
-            while (jc.isAlive()) {
-
-                try {
-
-                    Thread.sleep(50);
-
-                } catch (Exception ex) {
-                }
-            }
+            block(jc);
 
             OtoolInfo info = job.getOtoolInfo();
             if (info != null) {
@@ -125,6 +108,19 @@ public class App {
                 }
             }
         }
+    }
+
+    private static void usage() {
+
+        System.out.println("usage:");
+        System.out.print("\tjava -jar path/to/slint-x.x.jar -p path/to/program -o path/to/output_directory ");
+        System.out.println("[-l libraryName] (default 'lib')\n");
+        System.out.println("\tThe program can be an executable or a shared library.");
+        System.out.println("\tThe output_directory will be created if it does not exist.");
+        System.out.println("\tThe output_directory/libraryName will be created if it does not exist.");
+        System.out.println("\tAlso the output_directory/libraryName will be emptied if it does exist.\n");
+
+        System.exit(0);
     }
 
     public static void main(String[] args) {
@@ -148,6 +144,10 @@ public class App {
                 } else if (args[i].equalsIgnoreCase("-l")) {
 
                     library = args[i + 1];
+
+                } else if (args[i].equalsIgnoreCase("-h")) {
+
+                    usage();
                 }
             }
 
@@ -276,6 +276,18 @@ public class App {
 
                     System.out.println("Error " + ex.getMessage() + " Quitting.");
                 }
+
+            } else {
+
+                if (program == null) {
+
+                    System.out.println("No program given to work on.");
+
+                } else if (output == null) {
+
+                    System.out.println("No output directory given to put files.");
+                }
+                usage();
             }
 
         } else {

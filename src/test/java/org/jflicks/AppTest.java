@@ -40,7 +40,7 @@ public class AppTest extends TestCase {
 
         System.out.println("start");
         final OtoolJob job = new OtoolJob();
-        job.setPath("/Users/djb/Comskip/comskip");
+        job.setPath("/usr/bin/otool");
         job.addJobListener(new JobListener() {
             public void jobUpdate(JobEvent event) {
 
@@ -68,7 +68,7 @@ public class AppTest extends TestCase {
 
             try {
 
-                Thread.sleep(1000);
+                Thread.sleep(50);
 
             } catch (Exception ex) {
             }
