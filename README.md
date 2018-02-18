@@ -40,7 +40,7 @@ usage:
 
 Here is the output of a sample run.  I had previously cloned Comskip and built it on my machine following
 the directions and installing needed packages using [Homebrew](https://brew.sh).  The libraries built and
-installed by Homebrew will be fetched by SLINT.
+installed by Homebrew will be fetched and altered by SLINT using the Mac utility install_name_tool.
 
 ```
 --> java -jar slint/target/slint-1.0-SNAPSHOT.jar -p Comskip/comskip -o tmp/output
