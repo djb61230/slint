@@ -11,7 +11,7 @@ The idea for this program comes from [Comskip](https://github.com/erikkaashoek/C
 [matryoshka-name-tool](https://github.com/essandess/matryoshka-name-tool).  Comskip mentions the use
 of matryoshka-name-tool to perform this task for the Mac.  Unfortunately I could not get matryoshka-name-tool
 to work.  It's most likely an operator error on my part and since I'm not a Python user I thought I'd spend a
-day or two writing similar functionality instead of hacking the matryoshka-name-tool script.
+day or two writing similar functionality in Java instead of hacking the matryoshka-name-tool script.
 
 I came to building Comskip for my project [jflicks(source)](https://github.com/djb61230/jflicks) and
 [jflicks.org](http://www.jflicks.org).  I have personally used Comskip before (it is terrific) but I hadn't
