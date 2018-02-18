@@ -1,6 +1,6 @@
-# Slint
+# SLINT
 
-Slint is the Shared Library Install Name Tool project to make creating a collection of a compiled binary
+SLINT is the **S**hared **L**ibrary **I**nstall **N**ame **T**ool project to make creating a collection of a compiled binary
 program and it's dependent shared libraries an easy task.  So perhaps an easier way to distribute compiled
 code with your project.
 
