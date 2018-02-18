@@ -65,7 +65,7 @@ tmp/output/lib.
 
 ```
 --> cd tmp/output
-Douglass-MacBook-Pro-9:~/tmp/output djb$ ls -lsa
+--> ls -lsa
 total 792
   0 drwxr-xr-x   4 djb  staff     128 Feb 18 10:29 .
   0 drwxr-xr-x  37 djb  staff    1184 Feb 17 14:34 ..
