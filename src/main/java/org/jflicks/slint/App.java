@@ -152,11 +152,12 @@ public final class App {
 
         System.out.println("usage:");
         System.out.print("\tjava -jar path/to/slint-x.x.jar -p path/to/program -o path/to/output_directory ");
-        System.out.println("[-l libraryName] (default 'lib')\n");
+        System.out.println("[-l libraryName] (default 'lib') [-d [DEBUG|OFF]] (default 'OFF') [-h (usage)]\n");
         System.out.println("\tThe program can be an executable or a shared library.");
         System.out.println("\tThe output_directory will be created if it does not exist.");
         System.out.println("\tThe output_directory/libraryName will be created if it does not exist.");
         System.out.println("\tAlso the output_directory/libraryName will be emptied if it does exist.\n");
+        System.out.println("\tTurning on DEBUG will result in messages written to the console.\n");
 
         System.exit(0);
     }
