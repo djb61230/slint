@@ -18,7 +18,7 @@ I came to building Comskip for my project [jflicks(source)](https://github.com/d
 included it with public jflicks because until I saw the source here on github, it only supported Windows.
 Oh you could get it to run on the Mac and Linux with [Wine](https://www.winehq.org) but that was even more
 difficult to distribute.  At the time Comskip was only donation-ware and distributing it was not encouraged
-by it's author, at least to me an email.
+by it's author, at least to me in an email.
 
 ## Getting Started
 
