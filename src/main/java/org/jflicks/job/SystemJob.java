@@ -265,10 +265,10 @@ public final class SystemJob extends AbstractJob implements JobListener {
 
                     inputStreamJob.addJobListener(this);
                     inputJobContainer.start();
-                    JobManager.sleep(1000);
+                    JobManager.sleep(10);
                     outputStreamJob.addJobListener(this);
                     outputJobContainer.start();
-                    JobManager.sleep(1000);
+                    JobManager.sleep(10);
 
                     setExitValue(p.waitFor());
                     setOutputText(inputStreamJob.getOutputText());
